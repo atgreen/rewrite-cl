@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install SBCL
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sbcl
+
+    - name: Install ocicl
+      run: |
+        curl -sL https://github.com/ocicl/ocicl/releases/download/v2.9.0/ocicl_2.9.0-1_amd64.deb -o ocicl.deb
+        sudo dpkg -i ocicl.deb
+
+    - name: Setup ocicl
+      run: |
+        ocicl version
+        ocicl setup > ~/.sbclrc
+
+    - name: Install dependencies
+      run: |
+        ocicl install
+
+    - name: Run tests
+      run: |
+        sbcl --non-interactive --load run-tests.lisp

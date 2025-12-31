@@ -1,0 +1,15 @@
+*.fasl
+*.lx64fsl
+*.dx64fsl
+*.x86f
+*.dfsl
+*.pfsl
+*.d64fsl
+*.p64fsl
+*.lx32fsl
+*.dx32fsl
+*~
+\#*\#
+.#*
+systems/
+ocicl/
