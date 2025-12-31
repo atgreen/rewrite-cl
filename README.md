@@ -157,8 +157,13 @@ Zippers provide a functional way to navigate and edit the AST:
 
 ### Zipper Traversal
 - `zip-find`, `zip-find-tag`, `zip-find-value` - Search
+- `zip-find-all` - Find all matching nodes
+- `zip-find-in-children`, `zip-find-child-value` - Search in children
 - `zip-prewalk`, `zip-postwalk` - Tree walking with transformation
+- `zip-collect`, `zip-collect-sexprs` - Collect nodes during traversal
+- `zip-transform`, `zip-transform-if` - Transform matching nodes
 - `zip-map-children` - Map over children
+- `zip-nth-child` - Access nth child directly
 
 ## Acknowledgments
 
