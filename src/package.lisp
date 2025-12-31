@@ -187,11 +187,23 @@
    #:zip-find-value
    #:zip-find-token
    #:zip-find-depth-first
+   #:zip-find-all
+   #:zip-find-by-position
+   #:zip-find-next-token
+   #:zip-find-next-list
+   #:zip-find-next-string
+   #:zip-find-in-children
+   #:zip-find-child-value
 
    ;; Walk
    #:zip-prewalk
    #:zip-postwalk
    #:zip-walk
+   #:zip-prewalk-while
+   #:zip-collect
+   #:zip-collect-sexprs
+   #:zip-transform
+   #:zip-transform-if
 
    ;; Subedit
    #:zip-subedit
@@ -281,12 +293,18 @@
    #:zip-find
    #:zip-find-tag
    #:zip-find-value
+   #:zip-find-all
+   #:zip-find-in-children
+   #:zip-find-child-value
    #:zip-prewalk
    #:zip-postwalk
    #:zip-walk
+   #:zip-collect
+   #:zip-collect-sexprs
    #:zip-subedit
    #:zip-subzip
    #:zip-map-children
+   #:zip-nth-child
    #:zip-string
    #:zip-root-string
    #:zip-sexpr
@@ -348,12 +366,18 @@
    #:zip-find
    #:zip-find-tag
    #:zip-find-value
+   #:zip-find-all
+   #:zip-find-in-children
+   #:zip-find-child-value
    #:zip-prewalk
    #:zip-postwalk
    #:zip-walk
+   #:zip-collect
+   #:zip-collect-sexprs
    #:zip-subedit
    #:zip-subzip
    #:zip-map-children
+   #:zip-nth-child
    #:zip-string
    #:zip-root-string
    #:zip-sexpr
