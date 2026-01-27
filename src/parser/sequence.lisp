@@ -14,14 +14,20 @@
 (defun parse-sequence-contents (reader end-char)
   "Parse contents of a sequence until END-CHAR.
 END-CHAR is not consumed."
-  (loop for char = (reader-peek reader)
-        while (and char (char/= char end-char))
-        ;; Check for unexpected closing delimiters
-        when (and (member char '(#\) #\]))
-                  (char/= char end-char))
-          do (error 'unmatched-delimiter
-                    :delimiter char
-                    :expected end-char
-                    :line (reader-line reader)
-                    :column (reader-column reader))
-        collect (parse-next reader)))
+  (let ((children
+          (loop for char = (reader-peek reader)
+                while (and char (char/= char end-char))
+                ;; Check for unexpected closing delimiters
+                when (and (member char '(#\) #\]))
+                          (char/= char end-char))
+                  do (error 'unmatched-delimiter
+                            :delimiter char
+                            :expected end-char
+                            :line (reader-line reader)
+                            :column (reader-column reader))
+                collect (parse-next reader))))
+    (when (null (reader-peek reader))
+      (error 'unexpected-eof
+             :line (reader-line reader)
+             :column (reader-column reader)))
+    children))

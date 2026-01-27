@@ -185,3 +185,11 @@
     (let ((sexp (node-sexpr node)))
       (is (eq 'defun (first sexp)))
       (is (eq 'foo (second sexp))))))
+
+;;; Error cases
+
+(test parse-unclosed-list
+  "Test that unclosed list signals unexpected-eof."
+  (signals unexpected-eof (parse-string "(foo bar"))
+  (signals unexpected-eof (parse-string "(defun foo (x  (+ x 1"))
+  (signals unexpected-eof (parse-string "(")))

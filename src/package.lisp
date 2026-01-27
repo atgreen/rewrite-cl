@@ -114,7 +114,17 @@
    ;; Character classification (used by parser)
    #:whitespace-char-p
    #:newline-char-p
-   #:whitespace-or-newline-p))
+   #:whitespace-or-newline-p
+
+   ;; Conditions
+   #:rewrite-cl-error
+   #:reader-error*
+   #:unexpected-eof
+   #:unexpected-character
+   #:unmatched-delimiter
+   #:unterminated-string
+   #:unterminated-block-comment
+   #:invalid-character-name))
 
 (defpackage #:rewrite-cl.parser
   (:documentation "Parser for reading Common Lisp source into AST nodes.")

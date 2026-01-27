@@ -19,7 +19,9 @@
                 #:node-replace-children
                 #:make-syntax-quote-node
                 #:make-unquote-node
-                #:make-unquote-splicing-node)
+                #:make-unquote-splicing-node
+                ;; Conditions
+                #:unexpected-eof)
   (:import-from #:rewrite-cl.parser
                 #:parse-string-all)
   (:import-from #:rewrite-cl.zip
