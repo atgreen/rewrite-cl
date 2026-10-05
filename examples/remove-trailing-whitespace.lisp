@@ -10,7 +10,8 @@
   (:import-from #:rewrite-cl.node
                 #:whitespace-node-p
                 #:newline-node-p
-                #:seq-node-p))
+                #:seq-node-p
+                #:comment-node-p))
 
 (in-package #:remove-trailing-ws)
 
@@ -18,11 +19,28 @@
   "Check if current node is whitespace/newline at end of a sequence."
   (and (or (whitespace-node-p (zip-node zipper))
            (newline-node-p (zip-node zipper)))
-       ;; No sibling to the right means we're at the end
-       (null (zip-right zipper))
        ;; Parent must be a sequence (list or vector)
        (let ((parent (zip-up zipper)))
-         (and parent (seq-node-p (zip-node parent))))))
+         (and parent (seq-node-p (zip-node parent))))
+       (let ((prev (zip-left zipper))
+	     (next (zip-right zipper)))
+	 ;; Normally, we want to delete whitespace/newlines at the end.
+	 ;; However, if there's a comment followed only by whitespace/newlines,
+	 ;; we want to delete all _except_ the last one, so the indentation on
+	 ;; the containing close paren doesn't change.
+	 (if (and prev (newline-node-p (zip-node prev))
+		  (zip-left prev)
+		  (comment-node-p (zip-node (zip-left prev))))
+	     ;; Comment case: we're on the first node after the newline after
+	     ;; a comment.  If we're not at the end, scan forward to see whether
+	     ;; we hit another non-whitespace/newline node.
+	     (and next
+		  (loop while (and next (or (whitespace-node-p (zip-node next))
+					    (newline-node-p (zip-node next))))
+		    do (setf next (zip-right next))
+		    finally (return (null next))))
+	   ;; Normal case: delete if it's the last one
+	   (null next)))))
 
 (defun remove-trailing-whitespace (source)
   "Remove whitespace before closing parens in SOURCE string."
@@ -38,7 +56,7 @@
                         (lambda (zz)
                           (if (trailing-whitespace-p zz)
                               (progn
-                                (setf changed t)
+				(setf changed t)
                                 (zip-remove zz))
                               zz))))
             finally (return (zip-root-string z))))))
@@ -48,7 +66,18 @@
   (format t "~%=== Remove Trailing Whitespace Demo ===~%~%")
 
   (let ((examples
-          '(;; Simple case
+          '(;; Empty case 1
+            "( )"
+
+            ;; Empty case 2
+            "(
+)"
+
+            ;; Empty case 3
+            "(
+  )"
+
+            ;; Simple case
             "(defun foo (x)
   (+ x 1   ))"
 
@@ -64,6 +93,21 @@
             "(defun bar ()
   ;; comment with trailing spaces
   (+ 1 2  ))"
+
+            ;; A comment before the close paren should retain its terminal
+	    ;; newline, along with the indentation of the close paren
+            "(defun foo (x)
+  (+ x 1   )
+  ;; comment
+
+  )"
+
+            ;; The same case, but with whitespace on the blank line
+            "(defun foo (x)
+  (+ x 1   )
+  ;; comment (whitespace on next line is intentional)
+  
+  )"
 
             ;; Vector
             "#(1 2 3   )"

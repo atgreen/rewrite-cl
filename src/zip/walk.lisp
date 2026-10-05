@@ -25,12 +25,34 @@ Returns zipper at root of transformed tree."
                  (let ((z2 (walk z)))
                    (if (zip-right z2)
                        (walk-siblings (zip-right z2))
-                       (zip-up z2)))
+                       (or (zip-up z2) z2)))
                  z)))
     (let ((result (walk zipper)))
       (if result
           (zip-root result)
           zipper))))
+
+#+simplified
+(defun zip-prewalk (zipper fn)
+  "Walk tree depth-first, applying FN to each node before its children.
+FN receives a zipper and should return a (possibly modified) zipper.
+Returns zipper at root of transformed tree."
+  (labels ((walk (z)
+             ;; Apply function to current node
+             (let ((z2 (funcall fn z)))
+               (if z2
+                   ;; Walk children if any
+                   (if (and (node-inner-p (zip-node z2))
+                            (zip-down z2))
+                       (walk-siblings (zip-down z2))
+                     z2)
+                 z)))
+           (walk-siblings (z)
+             (let ((z2 (walk z)))
+               (if (zip-right z2)
+                   (walk-siblings (zip-right z2))
+                 (or (zip-up z2) z2)))))
+    (and zipper (zip-root (walk zipper)))))
 
 ;;; Postwalk - visit children before parent
 
@@ -46,7 +68,7 @@ Returns zipper at root of transformed tree."
                              (zip-up (walk-siblings (zip-down z)))
                              z)))
                  ;; Then apply function to this node
-                 (funcall fn z2))))
+                 (or (funcall fn z2) z2))))
            (walk-siblings (z)
              (if z
                  (let ((z2 (walk z)))
