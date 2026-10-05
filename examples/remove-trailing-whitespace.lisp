@@ -39,8 +39,8 @@
 					    (newline-node-p (zip-node next))))
 		    do (setf next (zip-right next))
 		    finally (return (null next))))
-	   ;; Normal case: delete if it's the last one
-	   (null next)))))
+	     ;; Normal case: delete if it's the last one
+	     (null next)))))
 
 (defun remove-trailing-whitespace (source)
   "Remove whitespace before closing parens in SOURCE string."

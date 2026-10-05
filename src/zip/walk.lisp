@@ -45,13 +45,13 @@ Returns zipper at root of transformed tree."
                    (if (and (node-inner-p (zip-node z2))
                             (zip-down z2))
                        (walk-siblings (zip-down z2))
-                     z2)
+                       z2)
                  z)))
            (walk-siblings (z)
              (let ((z2 (walk z)))
                (if (zip-right z2)
                    (walk-siblings (zip-right z2))
-                 (or (zip-up z2) z2)))))
+                   (or (zip-up z2) z2)))))
     (and zipper (zip-root (walk zipper)))))
 
 ;;; Postwalk - visit children before parent
