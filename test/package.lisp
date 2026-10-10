@@ -28,7 +28,9 @@
                 #:zip-length
                 #:zip-nth-child
                 #:zip-child-sexprs
-                #:zip-whitespace-p)
+                #:zip-whitespace-p
+                ;; Not re-exported from #:rewrite-cl
+                #:zip-prewalk-while)
   (:export #:run-tests))
 
 (in-package #:rewrite-cl/test)

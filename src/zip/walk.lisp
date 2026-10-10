@@ -25,6 +25,8 @@ Returns zipper at root of transformed tree."
                  (let ((z2 (walk z)))
                    (if (zip-right z2)
                        (walk-siblings (zip-right z2))
+                       ;; ZIP-UP is NIL when Z2 is already at the root, which
+                       ;; would discard the whole walk; keep Z2 in that case.
                        (or (zip-up z2) z2)))
                  z)))
     (let ((result (walk zipper)))
@@ -111,7 +113,9 @@ Stops descending into a subtree if PREDICATE returns NIL for its root."
                  (let ((z2 (walk z)))
                    (if (zip-right z2)
                        (walk-siblings (zip-right z2))
-                       (zip-up z2)))
+                       ;; ZIP-UP is NIL when Z2 is already at the root, which
+                       ;; would discard the whole walk; keep Z2 in that case.
+                       (or (zip-up z2) z2)))
                  z)))
     (let ((result (walk zipper)))
       (if result

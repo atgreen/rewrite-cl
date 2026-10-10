@@ -181,6 +181,70 @@
       (is (= 3 (second (third result))))
       (is (= 4 (third (third result)))))))
 
+;;; Walk regression tests
+;;;
+;;; The sibling-chain helpers in zip-prewalk and zip-prewalk-while used to end
+;;; with (zip-up z2), which is NIL once the walk has returned to the root.
+;;; Both walks then fell through to their (if result ... zipper) guard and
+;;; handed the caller back its *input* zipper, silently dropping every edit.
+;;; A caller iterating to a fixpoint -- as examples/remove-trailing-whitespace
+;;; does -- would spin forever on such input.
+
+(defun drop-whitespace (zipper)
+  "Walk function that removes whitespace and newline nodes, keeping the rest."
+  (if (or (whitespace-node-p (zip-node zipper))
+          (newline-node-p (zip-node zipper)))
+      (zip-remove zipper)
+      zipper))
+
+(test zip-prewalk-keeps-edits-made-at-root
+  "Prewalk must not discard edits when the sibling chain ends at the root."
+  ;; "( )" is the minimal trigger: the only editable node is the sole child of
+  ;; the root, so walk-siblings reaches the end of the chain with the zipper
+  ;; already back at the root and (zip-up z2) is NIL.
+  (is (string= "()" (zip-root-string (zip-prewalk (of-string "( )")
+                                                  #'drop-whitespace))))
+  (is (string= "()" (zip-root-string (zip-prewalk (of-string (format nil "(~%)"))
+                                                  #'drop-whitespace))))
+  ;; Same shape with a token present, so the edit is not the last sibling.
+  (is (string= "(a)" (zip-root-string (zip-prewalk (of-string "(a   )")
+                                                   #'drop-whitespace)))))
+
+(test zip-prewalk-while-keeps-edits-made-at-root
+  "zip-prewalk-while shares the sibling-chain contract with zip-prewalk."
+  (is (string= "()" (zip-root-string (zip-prewalk-while (of-string "( )")
+                                                        (constantly t)
+                                                        #'drop-whitespace))))
+  (is (string= "(a)" (zip-root-string (zip-prewalk-while (of-string "(a   )")
+                                                         (constantly t)
+                                                         #'drop-whitespace)))))
+
+(test zip-prewalk-reaches-fixpoint-on-nested-whitespace
+  "Repeated prewalks must converge, not cycle on a dropped edit."
+  ;; zip-remove returns the removed node's right sibling, which walk-siblings
+  ;; then steps past, so a run of whitespace can need more than one pass.  What
+  ;; must hold is that each pass makes progress and the iteration terminates --
+  ;; that stays true if zip-remove's return position is ever changed.
+  (let ((current (format nil "(~%  )")))
+    (loop repeat 10
+          for next = (zip-root-string (zip-prewalk (of-string current)
+                                                   #'drop-whitespace))
+          until (string= next current)
+          do (setf current next))
+    (is (string= "()" current))))
+
+(test zip-postwalk-tolerates-nil-from-fn
+  "Postwalk must not crash when FN returns NIL, matching prewalk's contract."
+  ;; Previously walk-siblings called (zip-right z2) on a NIL z2, signalling a
+  ;; TYPE-ERROR rather than leaving the node alone.
+  (is (string= "(a)" (zip-root-string (zip-postwalk (of-string "(a)")
+                                                    (constantly nil)))))
+  (is (string= "(a b)"
+               (zip-root-string
+                (zip-postwalk (of-string "(a b)")
+                              (lambda (z)
+                                (if (equal "b" (zip-string z)) nil z)))))))
+
 ;;; Sequence operations
 
 (test zip-length
