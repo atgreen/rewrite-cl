@@ -9,36 +9,10 @@
   "Walk tree depth-first, applying FN to each node before its children.
 FN receives a zipper and should return a (possibly modified) zipper.
 Returns zipper at root of transformed tree."
-  (labels ((walk (z)
-             (when z
-               ;; Apply function to current node
-               (let ((z2 (funcall fn z)))
-                 (if z2
-                     ;; Walk children if any
-                     (if (and (node-inner-p (zip-node z2))
-                              (zip-down z2))
-                         (walk-siblings (zip-down z2))
-                         z2)
-                     z))))
-           (walk-siblings (z)
-             (if z
-                 (let ((z2 (walk z)))
-                   (if (zip-right z2)
-                       (walk-siblings (zip-right z2))
-                       ;; ZIP-UP is NIL when Z2 is already at the root, which
-                       ;; would discard the whole walk; keep Z2 in that case.
-                       (or (zip-up z2) z2)))
-                 z)))
-    (let ((result (walk zipper)))
-      (if result
-          (zip-root result)
-          zipper))))
-
-#+simplified
-(defun zip-prewalk (zipper fn)
-  "Walk tree depth-first, applying FN to each node before its children.
-FN receives a zipper and should return a (possibly modified) zipper.
-Returns zipper at root of transformed tree."
+  ;; Neither local function needs a NIL guard: ZIPPER is checked once here, and
+  ;; both are only ever called with a zipper that WALK-SIBLINGS has already
+  ;; established is non-NIL.  WALK cannot return NIL given a non-NIL argument,
+  ;; so there is no result to fall back from either.
   (labels ((walk (z)
              ;; Apply function to current node
              (let ((z2 (funcall fn z)))
@@ -48,11 +22,13 @@ Returns zipper at root of transformed tree."
                             (zip-down z2))
                        (walk-siblings (zip-down z2))
                        z2)
-                 z)))
+                   z)))
            (walk-siblings (z)
              (let ((z2 (walk z)))
                (if (zip-right z2)
                    (walk-siblings (zip-right z2))
+                   ;; ZIP-UP is NIL when Z2 is already at the root, which
+                   ;; would discard the whole walk; keep Z2 in that case.
                    (or (zip-up z2) z2)))))
     (and zipper (zip-root (walk zipper)))))
 

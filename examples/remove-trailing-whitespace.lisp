@@ -23,24 +23,24 @@
        (let ((parent (zip-up zipper)))
          (and parent (seq-node-p (zip-node parent))))
        (let ((prev (zip-left zipper))
-	     (next (zip-right zipper)))
-	 ;; Normally, we want to delete whitespace/newlines at the end.
-	 ;; However, if there's a comment followed only by whitespace/newlines,
-	 ;; we want to delete all _except_ the last one, so the indentation on
-	 ;; the containing close paren doesn't change.
-	 (if (and prev (newline-node-p (zip-node prev))
-		  (zip-left prev)
-		  (comment-node-p (zip-node (zip-left prev))))
-	     ;; Comment case: we're on the first node after the newline after
-	     ;; a comment.  If we're not at the end, scan forward to see whether
-	     ;; we hit another non-whitespace/newline node.
-	     (and next
-		  (loop while (and next (or (whitespace-node-p (zip-node next))
-					    (newline-node-p (zip-node next))))
-		    do (setf next (zip-right next))
-		    finally (return (null next))))
-	     ;; Normal case: delete if it's the last one
-	     (null next)))))
+             (next (zip-right zipper)))
+         ;; Normally, we want to delete whitespace/newlines at the end.
+         ;; However, if there's a comment followed only by whitespace/newlines,
+         ;; we want to delete all _except_ the last one, so the indentation on
+         ;; the containing close paren doesn't change.
+         (if (and prev (newline-node-p (zip-node prev))
+                  (zip-left prev)
+                  (comment-node-p (zip-node (zip-left prev))))
+             ;; Comment case: we're on the first node after the newline after
+             ;; a comment.  If we're not at the end, scan forward to see whether
+             ;; we hit another non-whitespace/newline node.
+             (and next
+                  (loop while (and next (or (whitespace-node-p (zip-node next))
+                                            (newline-node-p (zip-node next))))
+                    do (setf next (zip-right next))
+                    finally (return (null next))))
+             ;; Normal case: delete if it's the last one
+             (null next)))))
 
 (defun remove-trailing-whitespace (source)
   "Remove whitespace before closing parens in SOURCE string."
@@ -56,7 +56,7 @@
                         (lambda (zz)
                           (if (trailing-whitespace-p zz)
                               (progn
-				(setf changed t)
+                                (setf changed t)
                                 (zip-remove zz))
                               zz))))
             finally (return (zip-root-string z))))))
@@ -95,7 +95,7 @@
   (+ 1 2  ))"
 
             ;; A comment before the close paren should retain its terminal
-	    ;; newline, along with the indentation of the close paren
+            ;; newline, along with the indentation of the close paren
             "(defun foo (x)
   (+ x 1   )
   ;; comment
