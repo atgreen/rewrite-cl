@@ -171,7 +171,10 @@ Zippers provide a functional way to navigate and edit the AST:
 - `zip-edit` - Apply function to current node
 - `zip-insert-left`, `zip-insert-right` - Insert siblings
 - `zip-insert-child`, `zip-append-child` - Insert children
-- `zip-remove` - Remove current node
+- `zip-remove` - Remove current node, landing on the node *before* it (left
+  sibling, or the parent if there is none). Never lands on the node after, so a
+  left-to-right walk resumes on the removed node's successor rather than
+  stepping over it.
 
 ### Zipper Queries
 - `zip-node` - Get current node

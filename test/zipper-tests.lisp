@@ -276,7 +276,84 @@
                  (zip-append-child subz (make-token-node 'x))))))
     (is (equal '(a (b c x) d) (zip-sexpr (zip-root z4))))))
 
+;;; zip-remove position contract
+;;;
+;;; zip-remove lands on the node *before* the one removed, never the one after.
+;;; Returning the right sibling made a left-to-right walk step over it, because
+;;; walk-siblings advances with zip-right -- so a removing prewalk needed a
+;;; second pass to finish.  Note this is the same-level predecessor, not
+;;; clojure.zip's depth-first one: descending into the left sibling would leave
+;;; the sibling chain with nowhere to go.  zip-prev remains the DFS predecessor.
+
+(test zip-remove-lands-on-preceding-sibling
+  "zip-remove returns the left sibling, with the removed node gone."
+  (let* ((z (of-string "(a b c)"))
+         (b (zip-find-value z 'b))
+         (after (zip-remove b)))
+    ;; The node immediately to the left is the separating whitespace, not 'a --
+    ;; whitespace is a node in this tree, so that is the true left sibling.
+    (is (zip-whitespace-p after))
+    (is (eq 'a (zip-sexpr (zip-left* after))))
+    (is (equal '(a c) (zip-sexpr (zip-root after))))
+    ;; Both separators survive; only 'b is gone.
+    (is (string= "(a  c)" (zip-root-string after)))))
+
+(test zip-remove-lands-on-parent-when-first-child
+  "With no left sibling, zip-remove moves up and keeps the right siblings."
+  (let* ((z (of-string "(a b)"))
+         (a (zip-find-value z 'a))
+         (after (zip-remove a)))
+    (is (eql :list (zip-tag after)))
+    (is (equal '(b) (zip-sexpr (zip-root after))))))
+
+(test zip-remove-only-child-empties-parent
+  "Removing an only child leaves the parent childless."
+  (let* ((z (of-string "(a)"))
+         (a (zip-find-value z 'a))
+         (after (zip-remove a)))
+    (is (eql :list (zip-tag after)))
+    (is (string= "()" (zip-root-string after)))))
+
+(test zip-remove-at-root-returns-nil
+  "There is nothing to point at after removing the root."
+  (is (null (zip-remove (of-string "(a)")))))
+
+(test zip-remove-does-not-skip-during-prewalk
+  "A removing prewalk clears a run of whitespace in a single pass."
+  ;; This is the assertion that pins the contract down.  Returning the right
+  ;; sibling made walk-siblings step over the node after the removed one, so a
+  ;; run of adjacent whitespace needed a second pass: one prewalk over "(\n  )"
+  ;; dropped the newline and left the spaces behind, giving "(  )".
+  (is (string= "()" (zip-root-string
+                     (zip-prewalk (of-string (format nil "(~%  )"))
+                                  #'drop-whitespace))))
+  (is (string= "()" (zip-root-string
+                     (zip-prewalk (of-string (format nil "(~% ~%  ~%)"))
+                                  #'drop-whitespace))))
+  ;; Whitespace following a nested list: this is where clojure.zip's
+  ;; depth-first predecessor would strand the walk inside that list.
+  (dolist (case '(("(a (b c)   d   )" . "(a(bc)d)")
+                  ("((x y)   (z w)   )" . "((xy)(zw))")
+                  ("#((p q)   r   )" . "#((pq)r)")))
+    (is (string= (cdr case)
+                 (zip-root-string (zip-prewalk (of-string (car case))
+                                               #'drop-whitespace))))))
+
 ;;; Whitespace operations
+
+(test zip-remove-surrounding-whitespace-both-sides
+  "Whitespace is stripped on both sides of the current node."
+  ;; Previously only the left side was reached, and the all-whitespace case
+  ;; signalled a TYPE-ERROR.
+  (dolist (case '(("(a   b   c)" . "(abc)")
+                  ("(  b   c)" . "(bc)")
+                  ("(a   b  )" . "(ab)")
+                  ("(  b  )" . "(b)")))
+    (let* ((z (of-string (car case)))
+           (b (zip-find-value z 'b)))
+      (is (string= (cdr case)
+                   (zip-root-string
+                    (rewrite-cl.zip::zip-remove-surrounding-whitespace b)))))))
 
 (test zip-whitespace-p
   "Test whitespace predicate."

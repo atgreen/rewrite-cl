@@ -97,15 +97,20 @@
 (defun zip-remove-surrounding-whitespace (zipper)
   "Remove whitespace nodes immediately around current node."
   (let ((z zipper))
-    ;; Remove whitespace on left
-    (loop while (and (zip-left z) (zip-whitespace-p (zip-left z)))
-          do (setf z (zip-left z))
-             (setf z (zip-remove z)))
-    ;; Remove whitespace on right
-    (loop while (and (zip-right z) (zip-whitespace-p (zip-right z)))
-          do (setf z (zip-right z))
-             (setf z (zip-remove z))
-             (setf z (zip-left z)))
+    ;; Remove whitespace on the left.  ZIP-REMOVE lands on the node *before*
+    ;; the one it removed, so step forward again to get back to our own node:
+    ;; to the right sibling, or down from the parent when the whitespace we
+    ;; removed was the first child and ZIP-REMOVE therefore moved up.
+    (loop for ws = (zip-left z)
+          while (and ws (zip-whitespace-p ws))
+          do (setf z (if (zip-left ws)
+                         (zip-right (zip-remove ws))
+                         (zip-down (zip-remove ws)))))
+    ;; Remove whitespace on the right.  Here ZIP-REMOVE lands on our own node
+    ;; already, since we are the removed node's left sibling.
+    (loop for ws = (zip-right z)
+          while (and ws (zip-whitespace-p ws))
+          do (setf z (zip-remove ws)))
     z))
 
 (defun zip-normalize-whitespace (zipper)

@@ -72,20 +72,19 @@ Current node must be an inner node."
 ;;; Removal
 
 (defun zip-remove (zipper)
-  "Remove current node, returning zipper at next available position.
-Tries right sibling, then left sibling, then parent."
-  (cond
-    ;; Move to right sibling
-    ((%zip-right zipper)
-     (%make-zipper
-      :node (first (%zip-right zipper))
-      :parent (%zip-parent zipper)
-      :left (%zip-left zipper)
-      :right (rest (%zip-right zipper))
-      :changed-p t
-      :track-position-p (%zip-track-position-p zipper)))
+  "Remove current node, returning zipper at the preceding sibling.
+Moves to the left sibling, or to the parent when there is none; returns NIL
+at the root.  Returns NIL only when there is nothing left to point at.
 
-    ;; Move to left sibling (preserve right siblings)
+The position is the node *before* the one removed, never the one after, so a
+left-to-right walk resumes on the removed node's successor instead of
+stepping over it.  ZIP-PREWALK and friends advance with ZIP-RIGHT, so this
+stays at the removed node's own level rather than descending into the left
+sibling the way CLOJURE.ZIP's REMOVE does -- descending is right only for a
+ZIP-NEXT-based traversal, and would leave the sibling chain unable to
+continue.  See ZIP-PREV for the depth-first predecessor."
+  (cond
+    ;; Move to left sibling, dropping this node from its right siblings
     ((%zip-left zipper)
      (%make-zipper
       :node (first (%zip-left zipper))
@@ -95,11 +94,12 @@ Tries right sibling, then left sibling, then parent."
       :changed-p t
       :track-position-p (%zip-track-position-p zipper)))
 
-    ;; Move to parent with empty children
+    ;; No left sibling: move to parent, keeping any right siblings as its
+    ;; remaining children
     ((%zip-parent zipper)
      (let ((parent (%zip-parent zipper)))
        (%make-zipper
-        :node (node-replace-children (zip-node parent) nil)
+        :node (node-replace-children (zip-node parent) (%zip-right zipper))
         :parent (%zip-parent parent)
         :left (%zip-left parent)
         :right (%zip-right parent)
