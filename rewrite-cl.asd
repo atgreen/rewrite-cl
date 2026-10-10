@@ -68,6 +68,7 @@
      (:file "node-tests")
      (:file "parser-tests")
      (:file "zipper-tests")
-     (:file "roundtrip-tests"))))
+     (:file "roundtrip-tests")
+     (:file "api-tests"))))
   :perform (test-op (o s)
              (uiop:symbol-call :rewrite-cl/test :run-tests)))

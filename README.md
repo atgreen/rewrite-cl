@@ -175,6 +175,8 @@ Zippers provide a functional way to navigate and edit the AST:
   sibling, or the parent if there is none). Never lands on the node after, so a
   left-to-right walk resumes on the removed node's successor rather than
   stepping over it.
+- `zip-remove-surrounding-whitespace` - Strip whitespace on both sides of the
+  current node, staying on it
 
 ### Zipper Queries
 - `zip-node` - Get current node
@@ -188,6 +190,7 @@ Zippers provide a functional way to navigate and edit the AST:
 - `zip-find-all` - Find all matching nodes
 - `zip-find-in-children`, `zip-find-child-value` - Search in children
 - `zip-prewalk`, `zip-postwalk` - Tree walking with transformation
+- `zip-prewalk-while` - Prewalk, not descending where a predicate fails
 - `zip-collect`, `zip-collect-sexprs` - Collect nodes during traversal
 - `zip-transform`, `zip-transform-if` - Transform matching nodes
 - `zip-map-children` - Map over children

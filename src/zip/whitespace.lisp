@@ -112,36 +112,3 @@
           while (and ws (zip-whitespace-p ws))
           do (setf z (zip-remove ws)))
     z))
-
-(defun zip-normalize-whitespace (zipper)
-  "Ensure exactly one space between siblings (for non-whitespace nodes)."
-  (if (not (node-inner-p (zip-node zipper)))
-      zipper
-      (let ((child (zip-down zipper)))
-        (if (not child)
-            zipper
-            (progn
-              ;; Skip leading whitespace
-              (loop while (and child (zip-whitespace-or-comment-p child))
-                    do (setf child (zip-right child)))
-              ;; If all children were whitespace/comments, return original zipper
-              (if (not child)
-                  zipper
-                  (progn
-                    ;; Process remaining children
-                    (loop while (zip-right child)
-                          do (let ((next (zip-right child)))
-                               (cond
-                                 ;; Both non-whitespace: insert space
-                                 ((and (not (zip-whitespace-or-comment-p child))
-                                       (not (zip-whitespace-or-comment-p next)))
-                                  (setf child (zip-insert-right child (spaces 1)))
-                                  (setf child (zip-right (zip-right child))))
-                                 ;; Multiple spaces: collapse to one
-                                 ((and (zip-whitespace-p child)
-                                       (zip-whitespace-p next))
-                                  (setf child (zip-remove next)))
-                                 (t
-                                  (setf child (zip-right child))))))
-                    ;; Return zipper at parent using the modified child
-                    (zip-up (zip-leftmost child)))))))))

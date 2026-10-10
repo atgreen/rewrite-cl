@@ -236,6 +236,9 @@
    #:zip-comment-p
    #:zip-whitespace-or-comment-p
 
+   ;; Whitespace manipulation
+   #:zip-remove-surrounding-whitespace
+
    ;; Accessors
    #:zip-string
    #:zip-root-string
@@ -299,6 +302,7 @@
    #:zip-insert-child
    #:zip-append-child
    #:zip-remove
+   #:zip-remove-surrounding-whitespace
    #:zip-splice
    #:zip-find
    #:zip-find-tag
@@ -309,6 +313,9 @@
    #:zip-prewalk
    #:zip-postwalk
    #:zip-walk
+   #:zip-prewalk-while
+   #:zip-transform
+   #:zip-transform-if
    #:zip-collect
    #:zip-collect-sexprs
    #:zip-subedit
@@ -372,6 +379,7 @@
    #:zip-insert-child
    #:zip-append-child
    #:zip-remove
+   #:zip-remove-surrounding-whitespace
    #:zip-splice
    #:zip-find
    #:zip-find-tag
@@ -382,6 +390,9 @@
    #:zip-prewalk
    #:zip-postwalk
    #:zip-walk
+   #:zip-prewalk-while
+   #:zip-transform
+   #:zip-transform-if
    #:zip-collect
    #:zip-collect-sexprs
    #:zip-subedit

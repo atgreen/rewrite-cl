@@ -353,7 +353,7 @@
            (b (zip-find-value z 'b)))
       (is (string= (cdr case)
                    (zip-root-string
-                    (rewrite-cl.zip::zip-remove-surrounding-whitespace b)))))))
+                    (zip-remove-surrounding-whitespace b)))))))
 
 (test zip-whitespace-p
   "Test whitespace predicate."
